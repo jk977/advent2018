@@ -1,4 +1,4 @@
-name:                day1
+name:                advent2018
 version:             0.1.0.0
 license:             GPLv3
 author:              "jk977"
@@ -14,7 +14,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/day1#readme>
+description:         Please see the README on GitHub at <https://github.com/githubuser/advent2018#readme>
 
 dependencies:
 - base >= 4.7 && < 5
@@ -23,23 +23,22 @@ library:
   source-dirs: src
 
 executables:
-  day1-exe:
+  advent2018-exe:
     main:                Main.hs
-    source-dirs:         app
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - day1
+    - advent2018
 
-tests:
-  day1-test:
-    main:                Spec.hs
-    source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - day1
+# tests:
+#   advent2018-test:
+#     main:                Spec.hs
+#     source-dirs:         test
+#     ghc-options:
+#     - -threaded
+#     - -rtsopts
+#     - -with-rtsopts=-N
+#     dependencies:
+#     - advent2018
