@@ -24,5 +24,10 @@ update x f ls
 countIn :: Eq a => a -> [a] -> Int
 countIn x = length . filter (==x)
 
-overlap :: Eq a => [a] -> [a] -> [a]
-overlap xs ys = xs \\ (xs \\ ys)
+safeHead :: [a] -> Maybe a
+safeHead [] = Nothing
+safeHead xs = Just $ head xs
+
+safeLast :: [a] -> Maybe a
+safeLast [] = Nothing
+safeLast xs = Just $ last xs
