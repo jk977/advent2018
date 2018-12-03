@@ -15,6 +15,13 @@ getFreqs :: Int -> [Int -> Int] -> [Int]
 getFreqs cur [] = return cur
 getFreqs cur (f:fs) = cur : getFreqs (f cur) fs
 
+firstDup :: Eq a => [a] -> Maybe a
+firstDup ls = firstDup' [] ls where
+    firstDup' _ [] = Nothing
+    firstDup' counts (x:xs)
+        | lookup x counts > pure 0 = Just x
+        | otherwise = firstDup' (update x (maybe 1 succ) counts) xs
+
 part1 :: IO ()
 part1 = getChanges >>= print . last . getFreqs 0
 

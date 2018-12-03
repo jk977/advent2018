@@ -19,9 +19,5 @@ update x f ls
         keys = fst <$> ls
         changeVal (a,b) = (a, if a == x then f $ Just b else b)
 
-firstDup :: Eq a => [a] -> Maybe a
-firstDup ls = firstDup' [] ls where
-    firstDup' _ [] = Nothing
-    firstDup' counts (x:xs)
-        | lookup x counts > pure 0 = Just x
-        | otherwise = firstDup' (update x (maybe 1 succ) counts) xs
+countIn :: Eq a => a -> [a] -> Int
+countIn x = length . filter (==x)
