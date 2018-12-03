@@ -28,7 +28,7 @@ partitionPairs bs = do
     return stripped
 
 findBox :: [String] -> String
-findBox = head . map fst . sortBy (compare `on` length . snd) . partitionPairs
+findBox = fst . head . sortBy (compare `on` length . snd) . partitionPairs
 
 part1 :: IO ()
 part1 = getContents >>= print . checksum . lines
