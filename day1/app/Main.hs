@@ -1,6 +1,5 @@
 module Main where
 
-import Data.List
 import Lib
 
 getChanges :: IO [Int -> Int]
