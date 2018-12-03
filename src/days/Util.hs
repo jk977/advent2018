@@ -1,5 +1,7 @@
 module Util where
 
+import Data.List
+
 reverse2D :: [[a]] -> [[a]]
 reverse2D = map reverse . reverse
 
@@ -21,3 +23,6 @@ update x f ls
 
 countIn :: Eq a => a -> [a] -> Int
 countIn x = length . filter (==x)
+
+overlap :: Eq a => [a] -> [a] -> [a]
+overlap xs ys = xs \\ (xs \\ ys)
