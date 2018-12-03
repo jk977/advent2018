@@ -1,10 +1,4 @@
-module Lib where
-
-parseChange :: String -> Int -> Int
-parseChange (c:num) = op $ read num where
-    op = case c of
-        '+' -> (+)
-        '-' -> subtract
+module Util where
 
 reverse2D :: [[a]] -> [[a]]
 reverse2D = map reverse . reverse
@@ -31,7 +25,3 @@ firstDup ls = firstDup' [] ls where
     firstDup' counts (x:xs)
         | lookup x counts > pure 0 = Just x
         | otherwise = firstDup' (update x (maybe 1 succ) counts) xs
-
-getFreqs :: Int -> [Int -> Int] -> [Int]
-getFreqs cur [] = return cur
-getFreqs cur (f:fs) = cur : getFreqs (f cur) fs
