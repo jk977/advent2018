@@ -1,2 +1,5 @@
 /info
 .*.sw[a-z]
+.stack-work/
+advent2018.cabal
+*~
