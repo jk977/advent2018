@@ -35,9 +35,6 @@ pointsIn (Rect a b) = [Point x y | x <- [x a..x b], y <- [y a..y b]]
 pointsInAll :: [Rect] -> [Point]
 pointsInAll = nub . concatMap pointsIn
 
-area :: Rect -> Int
-area (Rect a b) = (x b - x a) * (y b - y a)
-
 parseClaim :: String -> Claim
 parseClaim s = Claim cid section where
     readOn d = map read . splitOn d
@@ -52,6 +49,9 @@ parseClaim s = Claim cid section where
 rectsOverlap :: Rect -> Rect -> Bool
 rectsOverlap (Rect a1 b1) (Rect a2 b2) = and $ fs <*> [(a1,b2), (a2,b1)] where
     fs = uncurry <$> [(<=) `on` x, (<=) `on` y]
+
+claimsOverlap :: Claim -> Claim -> Bool
+claimsOverlap (Claim _ r1) (Claim _ r2) = rectsOverlap r1 r2
 
 overlapRect :: Rect -> Rect -> [Point]
 overlapRect r1@(Rect a1 b1) r2@(Rect a2 b2)
@@ -70,8 +70,19 @@ overlaps cs = nub . concat $ pts where
 overlapArea :: [Claim] -> Int
 overlapArea = length . overlaps
 
+hasCollision :: Claim -> [Claim] -> Bool
+hasCollision c1 cs = or $ claimsOverlap c1 <$> cs
+
+findNonOverlaps :: [Claim] -> [Claim]
+findNonOverlaps = map head . filter (\(y:ys) -> not $ hasCollision y ys) . rotations
+
 part1 :: IO ()
 part1 = getContents >>= print . overlapArea . map parseClaim . lines
 
 part2 :: IO ()
-part2 = undefined
+part2 = getContents >>= putStrLn
+    . unlines
+    . map (show . cid)
+    . findNonOverlaps
+    . map parseClaim
+    . lines

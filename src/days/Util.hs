@@ -31,3 +31,10 @@ safeHead xs = Just $ head xs
 safeLast :: [a] -> Maybe a
 safeLast [] = Nothing
 safeLast xs = Just $ last xs
+
+rotate :: [a] -> [a]
+rotate [] = []
+rotate (x:xs) = xs ++ [x]
+
+rotations :: [a] -> [[a]]
+rotations xs = take (length xs) . iterate rotate $ xs
