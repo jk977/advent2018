@@ -3,9 +3,6 @@ version:             0.1.0.0
 license:             GPLv3
 author:              "jk977"
 
-extra-source-files:
-- README.md
-
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
 # category:            Web
@@ -30,14 +27,3 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - advent2018
-
-# tests:
-#   advent2018-test:
-#     main:                Spec.hs
-#     source-dirs:         test
-#     ghc-options:
-#     - -threaded
-#     - -rtsopts
-#     - -with-rtsopts=-N
-#     dependencies:
-#     - advent2018

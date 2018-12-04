@@ -1,7 +1,11 @@
 module Day3 where
 
-import Data.List
-import Data.Function
+import Data.Maybe (catMaybes)
+import Data.List (init, nub, intersect)
+import Data.Function (on)
+import Data.Traversable (sequence)
+
+import Debug.Trace
 import Util
 
 data Point = Point {
@@ -16,17 +20,26 @@ data Rect = Rect {
 
 data Claim = Claim {
     cid :: Int,
-    span :: Rect
+    section :: Rect
 } deriving (Show, Ord, Eq)
 
 makeRect :: Point -> Int -> Int -> Rect
-makeRect start@(Point x y) width height = Rect start $ Point (x+width) (y+height)
+makeRect start@(Point x y) width height = Rect start end where
+    xEnd = x + width - 1    -- -1 to include starting point in width
+    yEnd = y + height - 1
+    end = Point xEnd yEnd
+
+pointsIn :: Rect -> [Point]
+pointsIn (Rect a b) = [Point x y | x <- [x a..x b], y <- [y a..y b]]
+
+pointsInAll :: [Rect] -> [Point]
+pointsInAll = nub . concatMap pointsIn
 
 area :: Rect -> Int
-area (Rect (Point x1 y1) (Point x2 y2)) = (x2 - x1) * (y2 - y1)
+area (Rect a b) = (x b - x a) * (y b - y a)
 
 parseClaim :: String -> Claim
-parseClaim s = Claim cid span where
+parseClaim s = Claim cid section where
     readOn d = map read . splitOn d
 
     [idS,_,ptS,dimS] = words s
@@ -34,20 +47,31 @@ parseClaim s = Claim cid span where
     [width,height] = readOn "x" $ dimS
 
     cid = read . tail $ idS
-    span = makeRect (Point x y) width height
+    section = makeRect (Point x y) width height
 
 rectsOverlap :: Rect -> Rect -> Bool
 rectsOverlap (Rect a1 b1) (Rect a2 b2) = and $ fs <*> [(a1,b2), (a2,b1)] where
     fs = uncurry <$> [(<=) `on` x, (<=) `on` y]
 
-overlap :: Rect -> Rect -> Maybe Rect
-overlap r1@(Rect a1 b1) r2@(Rect a2 b2)
-    | rectsOverlap r1 r2 = Just $ Rect (Point xStart yStart) (Point xEnd yEnd)
-    | otherwise = Nothing
-    where
-        endsOn f = if f a2 <= f b1 then (f a2, f b1) else (f a1, f b2)
-        (xStart, xEnd) = endsOn x
-        (yStart, yEnd) = endsOn y
+overlapRect :: Rect -> Rect -> [Point]
+overlapRect r1@(Rect a1 b1) r2@(Rect a2 b2)
+    | rectsOverlap r1 r2 = pointsIn r1 `intersect` pointsIn r2
+    | otherwise = []
 
-overlaps :: [Rect] -> Maybe [Rect]
-overlaps = undefined
+overlapClaim :: Claim -> Claim -> [Point]
+overlapClaim (Claim id1 r1) (Claim id2 r2)
+    | id1 /= id2 = overlapRect r1 r2
+    | otherwise = []
+
+overlaps :: [Claim] -> [Point]
+overlaps cs = nub . concat $ pts where
+    pts = [overlapClaim c1 c2 | c1 <- cs, c2 <- cs, (cid c1) < (cid c2)]
+
+overlapArea :: [Claim] -> Int
+overlapArea = length . overlaps
+
+part1 :: IO ()
+part1 = getContents >>= print . overlapArea . map parseClaim . lines
+
+part2 :: IO ()
+part2 = undefined
