@@ -1,11 +1,15 @@
 module Day4 where
 
-import Control.Monad
+import Control.Monad (forM)
+import Control.Monad.ST
+
+import Data.STRef
 import Data.Either (rights)
 import Data.List (sortOn)
+
 import Text.Parsec
 
-import Util
+import Util (readInt, nInt)
 
 data Date = Date {
     year :: Int,
@@ -23,15 +27,41 @@ data DateTime = DateTime {
     time :: Time
 } deriving (Show, Eq, Ord)
 
-data Action = Sleep | Wake | StartShift deriving Show
+data Action = Sleep | Wake | StartShift deriving (Show, Eq)
 
-data Guard = Id Int | ImplicitId deriving Show
+data Guard = Id Int | ImplicitId deriving (Show, Eq)
 
 data Log = Log {
     guard :: Guard,
     action :: Action,
     dateTime :: DateTime
-} deriving Show
+} deriving (Show, Eq)
+
+isImplicit :: Guard -> Bool
+isImplicit ImplicitId = True
+isImplicit _          = False
+
+minsInHr    = 60
+minsInDay   = 24 * minsInHr
+minsInYr    = 365 * minsInDay
+
+daysInMo :: Int -> Int
+daysInMo n
+    | n == 2              = 28
+    | n `elem` [4,6,9,11] = 30
+    | otherwise           = 31
+
+minsInDate :: Date -> Int
+minsInDate d = yr + mo + dy where
+    yr = minsInYr * year d
+    mo = sum $ (minsInDay*) . daysInMo <$> [1..month d]
+    dy = minsInDay * day d
+
+minsInTime :: Time -> Int
+minsInTime t = minsInHr * (hour t) + (minute t)
+
+minsInDT :: DateTime -> Int
+minsInDT (DateTime d t) = minsInDate d + minsInTime t
 
 timestamp :: Monad m => ParsecT String u m DateTime
 timestamp = between (char '[') (char ']') $ do
@@ -78,9 +108,24 @@ readLogs = getContents
         . map (parse logLine "readLogs")
         . lines
 
+-- assumes logs are already sorted by date, and first guard has an ID
+convertImplicits :: [Log] -> [Log]
+convertImplicits logs = runST $ do
+    let firstGuard = guard $ head logs
+    lastRef <- newSTRef firstGuard
+
+    forM logs $ \log@(Log g _ _) -> do
+        last <- readSTRef lastRef
+
+        if isImplicit g then
+            return $ log { guard = last }
+        else do
+            writeSTRef lastRef g
+            return log
+
 part1 :: IO ()
 part1 = do
-    logs <- sortOn dateTime <$> readLogs
+    logs <- convertImplicits . sortOn dateTime <$> readLogs
     putStrLn . unlines . map show $ logs
 
 part2 :: IO ()
