@@ -1,6 +1,7 @@
 module Util where
 
 import Data.List
+import Text.Parsec
 
 reverse2D :: [[a]] -> [[a]]
 reverse2D = map reverse . reverse
@@ -38,3 +39,10 @@ rotate (x:xs) = xs ++ [x]
 
 rotations :: [a] -> [[a]]
 rotations xs = take (length xs) . iterate rotate $ xs
+
+readInt :: String -> Int
+readInt = read
+
+-- parse an integer of length n
+nInt :: Monad m => Int -> ParsecT String u m Int
+nInt = fmap readInt . flip count digit
