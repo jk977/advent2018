@@ -55,6 +55,7 @@ logLine = do
     (n, action) <- guardAction
     return $ Log n action dt
 
+readLogs :: IO [Log]
 readLogs = getContents
     >>= return
         . rights
