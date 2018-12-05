@@ -5,7 +5,6 @@ import Data.List (init, nub, intersect)
 import Data.Function (on)
 import Data.Traversable (sequence)
 
-import Debug.Trace
 import Util
 
 data Point = Point {
@@ -53,16 +52,17 @@ rectsOverlap (Rect a1 b1) (Rect a2 b2) = and $ fs <*> [(a1,b2), (a2,b1)] where
 claimsOverlap :: Claim -> Claim -> Bool
 claimsOverlap (Claim _ r1) (Claim _ r2) = rectsOverlap r1 r2
 
+-- points that lie in both rects
 overlapRect :: Rect -> Rect -> [Point]
 overlapRect r1@(Rect a1 b1) r2@(Rect a2 b2)
     | rectsOverlap r1 r2 = pointsIn r1 `intersect` pointsIn r2
     | otherwise = []
 
+-- points that lie in both claims
 overlapClaim :: Claim -> Claim -> [Point]
-overlapClaim (Claim id1 r1) (Claim id2 r2)
-    | id1 /= id2 = overlapRect r1 r2
-    | otherwise = []
+overlapClaim (Claim id1 r1) (Claim id2 r2) = overlapRect r1 r2
 
+-- points that lie in 2 or more of the provided claims
 overlaps :: [Claim] -> [Point]
 overlaps cs = nub . concat $ pts where
     pts = [overlapClaim c1 c2 | c1 <- cs, c2 <- cs, (cid c1) < (cid c2)]
@@ -70,11 +70,11 @@ overlaps cs = nub . concat $ pts where
 overlapArea :: [Claim] -> Int
 overlapArea = length . overlaps
 
-hasCollision :: Claim -> [Claim] -> Bool
-hasCollision c1 cs = or $ claimsOverlap c1 <$> cs
+hasCollisionIn :: Claim -> [Claim] -> Bool
+hasCollisionIn c1 = or . map (claimsOverlap c1)
 
-findNonOverlaps :: [Claim] -> [Claim]
-findNonOverlaps = map head . filter (\(y:ys) -> not $ hasCollision y ys) . rotations
+findNonCollisions :: [Claim] -> [Claim]
+findNonCollisions = map head . filter (\(x:xs) -> not $ hasCollisionIn x xs) . rotations
 
 part1 :: IO ()
 part1 = getContents >>= print . overlapArea . map parseClaim . lines
@@ -83,6 +83,6 @@ part2 :: IO ()
 part2 = getContents >>= putStrLn
     . unlines
     . map (show . cid)
-    . findNonOverlaps
+    . findNonCollisions
     . map parseClaim
     . lines

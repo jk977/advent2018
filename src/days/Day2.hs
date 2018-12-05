@@ -1,7 +1,7 @@
 module Day2 where
 
-import Data.List
-import Data.Function
+import Data.List (partition, sortBy)
+import Data.Function (on)
 import Util
 
 containsNReps :: Eq a => Int -> [a] -> Bool
