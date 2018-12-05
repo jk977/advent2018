@@ -3,9 +3,7 @@ module Day4 where
 import Control.Monad (forM)
 import Control.Monad.ST
 
-import Data.Time.Clock
-import Data.Time.Format
-
+import Data.Time
 import Data.STRef
 import Data.Either (rights)
 import Data.List (sortOn)
