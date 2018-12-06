@@ -6,8 +6,10 @@ import Control.Monad.ST
 
 import Data.Time
 import Data.STRef
+
 import Data.Either (rights)
-import Data.List (sortOn)
+import Data.Function (on)
+import Data.List
 
 import Text.Parsec
 import Util
@@ -124,4 +126,16 @@ part1 = do
     putStrLn $ "Answer is " ++ (show $ slacker * targetMin)
 
 part2 :: IO ()
-part2 = undefined
+part2 = do
+    logs <- readLogs
+
+    let freqs = second frequencies <$> getSleepMins logs        :: [(Guard, [(Int,Int)])]
+        maxes = second (maximumBy (compare `on` snd)) <$> freqs :: [(Guard, (Int,Int))]
+        (Id slacker, (min, freq)) = maximumBy (compare `on` (snd . snd)) maxes
+
+    putStrLn $ "Highest sleep minute is "
+        ++ (show min)
+        ++ " (" ++ (show freq) ++ " times) by "
+        ++ (show slacker)
+
+    putStrLn $ "Answer is " ++ (show $ slacker * min)

@@ -28,6 +28,9 @@ update x f ls
 countIn :: Eq a => a -> [a] -> Int
 countIn x = length . filter (==x)
 
+frequencies :: Eq a => [a] -> [(a, Int)]
+frequencies xs = nub . zip xs $ (`countIn` xs) <$> xs
+
 safeHead :: [a] -> Maybe a
 safeHead [] = Nothing
 safeHead xs = Just $ head xs

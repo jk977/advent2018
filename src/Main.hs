@@ -3,4 +3,4 @@ module Main where
 import qualified Day4 as D4
 
 main :: IO ()
-main = D4.part1
+main = D4.part2
