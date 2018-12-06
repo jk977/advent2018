@@ -1,6 +1,8 @@
 module Util where
 
+import Control.Arrow
 import Data.List
+import GHC.Exts
 import Text.Parsec
 
 reverse2D :: [[a]] -> [[a]]
@@ -46,3 +48,10 @@ readInt = read
 -- parse an integer of length n
 nInt :: Monad m => Int -> ParsecT String u m Int
 nInt = fmap readInt . flip count digit
+
+-- combines duplicate keys in lookup table
+combineOn :: (Eq a, Ord a) => (b -> b -> b) -> [(a,b)] -> [(a,b)]
+combineOn f xs = map (second $ foldr1 f) flattened where
+    groups = groupWith fst xs
+    labeled = map (\ls@((x,_):_) -> (x,ls)) groups
+    flattened = map (second $ map snd) labeled

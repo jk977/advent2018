@@ -4,11 +4,15 @@ import Control.Monad (forM)
 import Control.Monad.ST
 
 import Data.Time
+import Data.Fixed
+
 import Data.STRef
 import Data.Either (rights)
 import Data.List (sortOn)
 
+import GHC.Exts (groupWith)
 import Text.Parsec
+import Debug.Trace
 
 import Util
 
@@ -16,10 +20,10 @@ type DateTime = UTCTime
 
 data Action = Sleep | Wake | StartShift deriving (Show, Eq)
 
-data Guard = Id Int | ImplicitId deriving (Show, Eq)
+data Guard = Id Int | ImplicitId deriving (Show, Eq, Ord)
 
 data Log = Log {
-    guard :: Guard,
+    guardID :: Guard,
     action :: Action,
     dateTime :: DateTime
 } deriving (Show, Eq)
@@ -65,22 +69,45 @@ readLogs = getContents
 -- assumes logs are already sorted by date, and first guard has an ID
 convertImplicits :: [Log] -> [Log]
 convertImplicits logs = runST $ do
-    let firstGuard = guard $ head logs
+    let firstGuard = guardID $ head logs
     lastRef <- newSTRef firstGuard
 
     forM logs $ \log@(Log g _ _) -> do
         last <- readSTRef lastRef
 
         if isImplicit g then
-            return $ log { guard = last }
+            return $ log { guardID = last }
         else do
             writeSTRef lastRef g
             return log
 
+getSleepTimes :: [Log] -> [(Guard, NominalDiffTime)]
+getSleepTimes logs = combineOn (+) . concat . forM (groupWith guardID logs)
+    $ \(l:ls) -> runST $ do
+        lastRef <- newSTRef l
+
+        diffs <- forM ls $ \log@(Log _ _ dt) -> do
+            Log _ lastStatus lastDt <- readSTRef lastRef
+            writeSTRef lastRef log
+
+            case lastStatus of
+                Sleep -> return $ diffUTCTime dt lastDt
+                _     -> return . secondsToNominalDiffTime $ 0
+
+        return [(guardID l, sum diffs)]
+
 part1 :: IO ()
 part1 = do
     logs <- convertImplicits . sortOn dateTime <$> readLogs
-    print logs
+
+    let sleepTimes = sortOn snd . getSleepTimes $ logs
+        (Id slacker, duration) = last sleepTimes
+
+    putStrLn $ "Sleepiest guard is "
+        ++ (show slacker)
+        ++ " with "
+        ++ (show $ duration)
+        ++ " of sleep"
 
 part2 :: IO ()
 part2 = undefined
