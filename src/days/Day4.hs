@@ -1,5 +1,6 @@
 module Day4 where
 
+import Control.Arrow (second)
 import Control.Monad (forM)
 import Control.Monad.ST
 
@@ -119,14 +120,18 @@ part1 :: IO ()
 part1 = do
     logs <- readLogs
 
-    let (Id slacker, ts) = last $ getSleepTimes logs
-        mins = ts >>= minutesIn
+    let sleeps = second (concatMap minutesIn) <$> getSleepTimes logs
+        (Id slacker, mins) = last . sortOn (length . snd) $ sleeps
         ordered = sortOn (`countIn` mins) mins
-        targetMin = last ordered `mod` 60
+        targetMin = last ordered
 
     putStrLn $ "Sleepiest guard is " ++ (show slacker)
     putStrLn $ "Most commonly asleep at " ++ (show targetMin)
     putStrLn $ "Answer is " ++ (show $ slacker * targetMin)
 
 part2 :: IO ()
-part2 = undefined
+part2 = do
+    logs <- readLogs
+
+    --let sleeps = second minutesIn <$> getSleepTimes logs
+    return ()
