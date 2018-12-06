@@ -50,8 +50,13 @@ nInt :: Monad m => Int -> ParsecT String u m Int
 nInt = fmap readInt . flip count digit
 
 -- combines duplicate keys in lookup table
-combineOn :: (Eq a, Ord a) => (b -> b -> b) -> [(a,b)] -> [(a,b)]
-combineOn f xs = map (second $ foldr1 f) flattened where
-    groups = groupWith fst xs
-    labeled = map (\ls@((x,_):_) -> (x,ls)) groups
-    flattened = map (second $ map snd) labeled
+combineOn :: (Eq a, Ord a) => (b -> c -> c) -> c -> [(a,b)] -> [(a,c)]
+combineOn f x0 =
+    map (second $ foldr f x0)
+    . map (second $ map snd)
+    . map (\ls@((x,_):_) -> (x,ls))
+    . groupWith fst
+
+pairs :: [a] -> [(a,a)]
+pairs [] = []
+pairs (x:y:ys) = (x,y) : pairs ys

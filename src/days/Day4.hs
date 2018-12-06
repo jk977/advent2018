@@ -1,5 +1,6 @@
 module Day4 where
 
+import Control.Arrow (second)
 import Control.Monad (forM)
 import Control.Monad.ST
 
@@ -28,6 +29,11 @@ data Log = Log {
     dateTime :: DateTime
 } deriving (Show, Eq)
 
+data TimeRange = TimeRange {
+    start :: DateTime,
+    end :: DateTime
+} deriving (Show, Eq)
+
 isImplicit :: Guard -> Bool
 isImplicit ImplicitId = True
 isImplicit _          = False
@@ -45,7 +51,8 @@ wake :: Monad m => ParsecT String u m (Guard, Action)
 wake = string "wakes up" >> return (ImplicitId, Wake)
 
 startShift :: Monad m => ParsecT String u m (Guard, Action)
-startShift = string "Guard #"
+startShift =
+    string "Guard #"
     >> (readInt <$> many digit)
     >>= \n -> return (Id n, StartShift)
 
@@ -60,7 +67,8 @@ logLine = do
     return $ Log n action dt
 
 readLogs :: IO [Log]
-readLogs = getContents
+readLogs =
+    getContents
     >>= return
         . rights
         . map (parse logLine "readLogs")
@@ -81,33 +89,20 @@ convertImplicits logs = runST $ do
             writeSTRef lastRef g
             return log
 
-getSleepTimes :: [Log] -> [(Guard, NominalDiffTime)]
-getSleepTimes logs = combineOn (+) . concat . forM (groupWith guardID logs)
-    $ \(l:ls) -> runST $ do
-        lastRef <- newSTRef l
-
-        diffs <- forM ls $ \log@(Log _ _ dt) -> do
-            Log _ lastStatus lastDt <- readSTRef lastRef
-            writeSTRef lastRef log
-
-            case lastStatus of
-                Sleep -> return $ diffUTCTime dt lastDt
-                _     -> return . secondsToNominalDiffTime $ 0
-
-        return [(guardID l, sum diffs)]
+-- assumes logs are sorted by date, and that every sleep log
+-- has a corresponding wake log
+getSleepTimes :: [Log] -> [(Guard, [TimeRange])]
+getSleepTimes =
+    combineOn (:) []
+    . map (\(Log g _ dt1, Log _ _ dt2) -> (g, TimeRange dt1 dt2))
+    . pairs
+    . filter ((/=StartShift) . action)
 
 part1 :: IO ()
 part1 = do
     logs <- convertImplicits . sortOn dateTime <$> readLogs
-
-    let sleepTimes = sortOn snd . getSleepTimes $ logs
-        (Id slacker, duration) = last sleepTimes
-
-    putStrLn $ "Sleepiest guard is "
-        ++ (show slacker)
-        ++ " with "
-        ++ (show $ duration)
-        ++ " of sleep"
+    let times = getSleepTimes logs
+    putStrLn . unlines . map show $ times
 
 part2 :: IO ()
 part2 = undefined
