@@ -22,16 +22,25 @@ partitionPairs bs = do
 
     let comps = zipWith (==) b1 b2
         tagged = zip b1 comps
-        (matches,diffs) = partition snd tagged
+        (matches, diffs) = partition snd tagged
         stripped = (fst <$> matches, fst <$> diffs)
 
     return stripped
 
 findBox :: [String] -> String
-findBox = fst . head . sortBy (compare `on` length . snd) . partitionPairs
+findBox = fst
+    . head
+    . sortBy (compare `on` length . snd)
+    . partitionPairs
 
 part1 :: IO ()
-part1 = getContents >>= print . checksum . lines
+part1 = getContents
+    >>= print
+        . checksum
+        . lines
 
 part2 :: IO ()
-part2 = getContents >>= putStrLn . findBox . lines
+part2 = getContents
+    >>= putStrLn
+        . findBox
+        . lines

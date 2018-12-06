@@ -1,20 +1,14 @@
 module Day4 where
 
-import Control.Arrow (second)
 import Control.Monad (forM)
 import Control.Monad.ST
 
 import Data.Time
-import Data.Fixed
-
 import Data.STRef
 import Data.Either (rights)
 import Data.List (sortOn)
 
-import GHC.Exts (groupWith)
 import Text.Parsec
-import Debug.Trace
-
 import Util
 
 type DateTime = UTCTime
@@ -42,17 +36,19 @@ parseDT :: String -> DateTime
 parseDT = parseTimeOrError False defaultTimeLocale "%Y-%-m-%-d %H:%M"
 
 timestamp :: Monad m => ParsecT String u m DateTime
-timestamp = between (char '[') (char ']') $ parseDT <$> many (noneOf "]")
+timestamp = between (char '[') (char ']')
+    $ parseDT <$> many (noneOf "]")
 
 sleep :: Monad m => ParsecT String u m (Guard, Action)
-sleep = string "falls asleep" >> return (ImplicitId, Sleep)
+sleep = string "falls asleep"
+    >> return (ImplicitId, Sleep)
 
 wake :: Monad m => ParsecT String u m (Guard, Action)
-wake = string "wakes up" >> return (ImplicitId, Wake)
+wake = string "wakes up"
+    >> return (ImplicitId, Wake)
 
 startShift :: Monad m => ParsecT String u m (Guard, Action)
-startShift =
-    string "Guard #"
+startShift = string "Guard #"
     >> (readInt <$> many digit)
     >>= \n -> return (Id n, StartShift)
 
@@ -67,8 +63,7 @@ logLine = do
     return $ Log n action dt
 
 readLogs :: IO [Log]
-readLogs =
-    getContents
+readLogs = getContents
     >>= return
         . rights
         . map (parse logLine "readLogs")
@@ -92,8 +87,7 @@ convertImplicits logs = runST $ do
 -- assumes logs are sorted by date, and that every sleep log
 -- has a corresponding wake log
 getSleepTimes :: [Log] -> [(Guard, [TimeRange])]
-getSleepTimes =
-    combineOn (:) []
+getSleepTimes = combineOn (:) []
     . map (\(Log g _ dt1, Log _ _ dt2) -> (g, TimeRange dt1 dt2))
     . pairs
     . filter ((/=StartShift) . action)

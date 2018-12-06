@@ -1,9 +1,7 @@
 module Day3 where
 
-import Data.Maybe (catMaybes)
 import Data.List (init, nub, intersect)
 import Data.Function (on)
-import Data.Traversable (sequence)
 
 import Util
 
@@ -46,8 +44,9 @@ parseClaim s = Claim cid section where
     section = makeRect (Point x y) width height
 
 rectsOverlap :: Rect -> Rect -> Bool
-rectsOverlap (Rect a1 b1) (Rect a2 b2) = and $ fs <*> [(a1,b2), (a2,b1)] where
+rectsOverlap (Rect a1 b1) (Rect a2 b2) = and $ fs <*> args where
     fs = uncurry <$> [(<=) `on` x, (<=) `on` y]
+    args = [(a1,b2), (a2,b1)]
 
 claimsOverlap :: Claim -> Claim -> Bool
 claimsOverlap (Claim _ r1) (Claim _ r2) = rectsOverlap r1 r2
@@ -65,7 +64,9 @@ overlapClaim (Claim id1 r1) (Claim id2 r2) = overlapRect r1 r2
 -- points that lie in 2 or more of the provided claims
 overlaps :: [Claim] -> [Point]
 overlaps cs = nub . concat $ pts where
-    pts = [overlapClaim c1 c2 | c1 <- cs, c2 <- cs, (cid c1) < (cid c2)]
+    pts = [overlapClaim c1 c2 | c1 <- cs,
+                                c2 <- cs,
+                                (cid c1) < (cid c2)]
 
 overlapArea :: [Claim] -> Int
 overlapArea = length . overlaps
@@ -74,15 +75,22 @@ hasCollisionIn :: Claim -> [Claim] -> Bool
 hasCollisionIn c1 = or . map (claimsOverlap c1)
 
 findNonCollisions :: [Claim] -> [Claim]
-findNonCollisions = map head . filter (\(x:xs) -> not $ hasCollisionIn x xs) . rotations
+findNonCollisions = map head
+    . filter (\(x:xs) -> not $ hasCollisionIn x xs)
+    . rotations
 
 part1 :: IO ()
-part1 = getContents >>= print . overlapArea . map parseClaim . lines
+part1 = getContents
+    >>= print
+        . overlapArea
+        . map parseClaim
+        . lines
 
 part2 :: IO ()
-part2 = getContents >>= putStrLn
-    . unlines
-    . map (show . cid)
-    . findNonCollisions
-    . map parseClaim
-    . lines
+part2 = getContents
+    >>= putStrLn
+        . unlines
+        . map (show . cid)
+        . findNonCollisions
+        . map parseClaim
+        . lines

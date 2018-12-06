@@ -9,17 +9,19 @@ reverse2D :: [[a]] -> [[a]]
 reverse2D = map reverse . reverse
 
 splitOn :: Eq a => [a] -> [a] -> [[a]]
-splitOn delim s = reverse2D $ splitOn' [[]] delim s where
+splitOn delim s = reverse2D $ splitOn' [] delim s where
+    splitOn' :: [[a]] -> [a] -> [a] -> [[a]]
     splitOn' cur@(top:ts) (d:ds) (x:xs)
-        | d == x = splitOn' cur ds xs
+        | d == x    = splitOn' cur ds xs
         | otherwise = splitOn' ((x:top) : ts) delim xs
+
     splitOn' cur [] xs = splitOn' ([] : cur) delim xs
-    splitOn' cur _ [] = cur
+    splitOn' cur _ []  = cur
 
 update :: Eq a => a -> (Maybe b -> b) -> [(a,b)] -> [(a,b)]
 update x f ls
     | x `elem` keys = changeVal <$> ls
-    | otherwise = (x, f Nothing) : ls
+    | otherwise     = (x, f Nothing) : ls
     where
         keys = fst <$> ls
         changeVal (a,b) = (a, if a == x then f $ Just b else b)
@@ -36,7 +38,7 @@ safeLast [] = Nothing
 safeLast xs = Just $ last xs
 
 rotate :: [a] -> [a]
-rotate [] = []
+rotate []     = []
 rotate (x:xs) = xs ++ [x]
 
 rotations :: [a] -> [[a]]
@@ -51,12 +53,11 @@ nInt = fmap readInt . flip count digit
 
 -- combines duplicate keys in lookup table
 combineOn :: (Eq a, Ord a) => (b -> c -> c) -> c -> [(a,b)] -> [(a,c)]
-combineOn f x0 =
-    map (second $ foldr f x0)
+combineOn f x0 = map (second $ foldr f x0)
     . map (second $ map snd)
     . map (\ls@((x,_):_) -> (x,ls))
     . groupWith fst
 
 pairs :: [a] -> [(a,a)]
-pairs [] = []
+pairs []       = []
 pairs (x:y:ys) = (x,y) : pairs ys
