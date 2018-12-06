@@ -80,13 +80,6 @@ logLine = do
     (n, action) <- guardAction
     return $ Log n action dt
 
-readLogs :: IO [Log]
-readLogs = getContents
-    >>= return
-        . rights
-        . map (parse logLine "readLogs")
-        . lines
-
 -- assumes logs are already sorted by date, and first guard has an ID
 convertImplicits :: [Log] -> [Log]
 convertImplicits logs = runST $ do
@@ -102,6 +95,15 @@ convertImplicits logs = runST $ do
             writeSTRef lastRef g
             return log
 
+readLogs :: IO [Log]
+readLogs = getContents
+    >>= return
+        . convertImplicits
+        . sortOn dateTime
+        . rights
+        . map (parse logLine "readLogs")
+        . lines
+
 -- assumes logs are sorted by date, and that every sleep log
 -- has a corresponding wake log
 getSleepTimes :: [Log] -> [(Guard, [TimeRange])]
@@ -113,20 +115,18 @@ getSleepTimes = combineOn (:) []
         extract (Log g _ dt1, Log _ _ dt2@(DateTime _ m)) =
             (g, TimeRange dt1 dt2{ minute=m-1 }) -- -1 to account for waking up
 
-getSleepMinutes :: (Guard, [TimeRange]) -> [Int]
-getSleepMinutes (_, ts) = concatMap minutesIn ts
-
 part1 :: IO ()
 part1 = do
-    logs <- convertImplicits . sortOn dateTime <$> readLogs
+    logs <- readLogs
 
-    let worst@(Id slacker, ts) = last $ getSleepTimes logs
-        mins = getSleepMinutes worst
+    let (Id slacker, ts) = last $ getSleepTimes logs
+        mins = ts >>= minutesIn
         ordered = sortOn (`countIn` mins) mins
         targetMin = last ordered `mod` 60
 
     putStrLn $ "Sleepiest guard is " ++ (show slacker)
     putStrLn $ "Most commonly asleep at " ++ (show targetMin)
+    putStrLn $ "Answer is " ++ (show $ slacker * targetMin)
 
 part2 :: IO ()
 part2 = undefined
