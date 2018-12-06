@@ -11,7 +11,10 @@ import Data.List (sortOn)
 import Text.Parsec
 import Util
 
-type DateTime = UTCTime
+data DateTime = DateTime {
+    day :: Day,
+    minute :: Int
+} deriving (Show, Eq, Ord)
 
 data Action = Sleep | Wake | StartShift deriving (Show, Eq)
 
@@ -32,12 +35,27 @@ isImplicit :: Guard -> Bool
 isImplicit ImplicitId = True
 isImplicit _          = False
 
+todToMinutes :: TimeOfDay -> Int
+todToMinutes t = todMin t + (todHour t * 60)
+
+minutesToTod :: Int -> TimeOfDay
+minutesToTod = timeToTimeOfDay . fromIntegral . (*60)
+
+minutesIn :: TimeRange -> [Int]
+minutesIn (TimeRange s e) = [minute s..minute e]
+
 parseDT :: String -> DateTime
-parseDT = parseTimeOrError False defaultTimeLocale "%Y-%-m-%-d %H:%M"
+parseDT s = DateTime day minutes where
+    parseDT' :: ParseTime t => String -> String -> t
+    parseDT' = parseTimeOrError False defaultTimeLocale
+
+    [ymd, time] = words s
+    day = parseDT' "%Y-%-m-%-d" ymd
+    minutes = todToMinutes . parseDT' "%H:%M" $ time
 
 timestamp :: Monad m => ParsecT String u m DateTime
 timestamp = between (char '[') (char ']')
-    $ parseDT <$> many (noneOf "]")
+    $ (parseDT <$> many (noneOf "]"))
 
 sleep :: Monad m => ParsecT String u m (Guard, Action)
 sleep = string "falls asleep"
@@ -88,15 +106,27 @@ convertImplicits logs = runST $ do
 -- has a corresponding wake log
 getSleepTimes :: [Log] -> [(Guard, [TimeRange])]
 getSleepTimes = combineOn (:) []
-    . map (\(Log g _ dt1, Log _ _ dt2) -> (g, TimeRange dt1 dt2))
+    . map extract
     . pairs
     . filter ((/=StartShift) . action)
+    where
+        extract (Log g _ dt1, Log _ _ dt2@(DateTime _ m)) =
+            (g, TimeRange dt1 dt2{ minute=m-1 }) -- -1 to account for waking up
+
+getSleepMinutes :: (Guard, [TimeRange]) -> [Int]
+getSleepMinutes (_, ts) = concatMap minutesIn ts
 
 part1 :: IO ()
 part1 = do
     logs <- convertImplicits . sortOn dateTime <$> readLogs
-    let times = getSleepTimes logs
-    putStrLn . unlines . map show $ times
+
+    let worst@(Id slacker, ts) = last $ getSleepTimes logs
+        mins = getSleepMinutes worst
+        ordered = sortOn (`countIn` mins) mins
+        targetMin = last ordered `mod` 60
+
+    putStrLn $ "Sleepiest guard is " ++ (show slacker)
+    putStrLn $ "Most commonly asleep at " ++ (show targetMin)
 
 part2 :: IO ()
 part2 = undefined

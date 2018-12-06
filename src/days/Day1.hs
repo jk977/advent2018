@@ -16,7 +16,7 @@ parseChange (c:num) = op $ read num where
         '-' -> subtract
 
 getFreqs :: Int -> [Int -> Int] -> [Int]
-getFreqs cur [] = return cur
+getFreqs cur []     = return cur
 getFreqs cur (f:fs) = cur : getFreqs (f cur) fs
 
 firstDup :: Eq a => [a] -> Maybe a

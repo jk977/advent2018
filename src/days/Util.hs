@@ -10,7 +10,6 @@ reverse2D = map reverse . reverse
 
 splitOn :: Eq a => [a] -> [a] -> [[a]]
 splitOn delim s = reverse2D $ splitOn' [] delim s where
-    splitOn' :: [[a]] -> [a] -> [a] -> [[a]]
     splitOn' cur@(top:ts) (d:ds) (x:xs)
         | d == x    = splitOn' cur ds xs
         | otherwise = splitOn' ((x:top) : ts) delim xs
