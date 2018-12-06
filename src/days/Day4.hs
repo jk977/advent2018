@@ -27,11 +27,6 @@ data Log = Log {
     dateTime :: DateTime
 } deriving (Show, Eq)
 
-data TimeRange = TimeRange {
-    start :: DateTime,
-    end :: DateTime
-} deriving (Show, Eq)
-
 isImplicit :: Guard -> Bool
 isImplicit ImplicitId = True
 isImplicit _          = False
@@ -39,11 +34,9 @@ isImplicit _          = False
 todToMinutes :: TimeOfDay -> Int
 todToMinutes t = todMin t + (todHour t * 60)
 
-minutesToTod :: Int -> TimeOfDay
-minutesToTod = timeToTimeOfDay . fromIntegral . (*60)
-
-minutesIn :: TimeRange -> [Int]
-minutesIn (TimeRange s e) = [minute s..minute e]
+-- assumes dates are on the same day
+minutesBetween :: DateTime -> DateTime -> [Int]
+minutesBetween start end = [minute start..minute end]
 
 parseDT :: String -> DateTime
 parseDT s = DateTime day minutes where
@@ -107,20 +100,21 @@ readLogs = getContents
 
 -- assumes logs are sorted by date, and that every sleep log
 -- has a corresponding wake log
-getSleepTimes :: [Log] -> [(Guard, [TimeRange])]
-getSleepTimes = combineOn (:) []
+getSleepMins :: [Log] -> [(Guard, [Int])]
+getSleepMins = combineOn (++) []
     . map extract
     . pairs
     . filter ((/=StartShift) . action)
     where
-        extract (Log g _ dt1, Log _ _ dt2@(DateTime _ m)) =
-            (g, TimeRange dt1 dt2{ minute=m-1 }) -- -1 to account for waking up
+        extract (Log g _ dt1, Log _ _ dt2@(DateTime _ min)) =
+            let end = dt2{ minute = min-1 } -- -1 to account for waking up
+            in  (g, minutesBetween dt1 end)
 
 part1 :: IO ()
 part1 = do
     logs <- readLogs
 
-    let sleeps = second (concatMap minutesIn) <$> getSleepTimes logs
+    let sleeps = getSleepMins logs
         (Id slacker, mins) = last . sortOn (length . snd) $ sleeps
         ordered = sortOn (`countIn` mins) mins
         targetMin = last ordered
@@ -130,8 +124,4 @@ part1 = do
     putStrLn $ "Answer is " ++ (show $ slacker * targetMin)
 
 part2 :: IO ()
-part2 = do
-    logs <- readLogs
-
-    --let sleeps = second minutesIn <$> getSleepTimes logs
-    return ()
+part2 = undefined
