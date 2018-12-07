@@ -12,6 +12,11 @@ data Point = Point {
     y :: Int
 } deriving (Show, Ord, Eq)
 
+data Line = Line {
+    start :: Point,
+    end :: Point
+} deriving (Show, Ord, Eq)
+
 data Rect = Rect {
     vertexA :: Point,
     vertexB :: Point
@@ -92,3 +97,6 @@ combineOn f x0 = map (second $ foldr f x0)
 pairs :: [a] -> [(a,a)]
 pairs []       = []
 pairs (x:y:ys) = (x,y) : pairs ys
+
+inRange :: Ord a => a -> (a,a) -> Bool
+inRange x (xMin,xMax) = x >= xMin && x <= xMax

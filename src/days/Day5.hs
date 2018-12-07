@@ -5,7 +5,7 @@ import Data.Function (on)
 import Data.List
 
 (~=~) :: Char -> Char -> Bool
-a ~=~ b = (toLower a) == (toLower b)
+(~=~) = (==) `on` toLower
 
 react :: String -> String
 react = react' [] where
