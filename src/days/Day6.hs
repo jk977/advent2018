@@ -1,15 +1,20 @@
 module Day6 where
 
+import Control.Arrow
 import Control.Monad
 import Data.Function (on)
 import Data.List
 import Util
 
 data Status = Taken Point | Attempt Point | Tie | Empty
+    deriving (Show, Eq)
 
 isTaken :: Status -> Bool
 isTaken (Taken _) = True
 isTaken _         = False
+
+takens :: [(Point, Status)] -> [(Point, Status)]
+takens = filter (isTaken . snd)
 
 borderPoints :: [Point] -> [Point]
 borderPoints ps = nub $ concat [xExtrema, yExtrema] where
@@ -25,8 +30,12 @@ enclose ps = Rect (Point xMin yMin) (Point xMax yMax) where
 
 makeGrid :: [Point] -> [(Point, Status)]
 makeGrid ps = replace <$> blankGrid where
-    blankGrid = flip zip (repeat Empty) . pointsIn . enclose $ ps
-    replace cell@(pt, stat) = if pt `elem` ps then (pt, Taken pt) else cell
+    region = pointsIn $ enclose ps
+    blankGrid = zip region (repeat Empty)
+    replace cell@(p, _) = if p `elem` ps then (p, Taken p) else cell
+
+advance :: [(Point, Status)] -> [(Point, Status)]
+advance grid = undefined
 
 area :: [Point] -> [(Point, Status)] -> Int
 area borders grid = length $ filter (isFinite . snd) filled where

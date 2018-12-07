@@ -1,6 +1,8 @@
 module Util where
 
-import Control.Arrow
+import Control.Arrow (second)
+import Control.Applicative (liftA2)
+
 import Data.List
 import Data.Function (on)
 
@@ -22,15 +24,25 @@ data Rect = Rect {
     vertexB :: Point
 } deriving (Show, Ord, Eq)
 
+onPt :: (Int -> Int -> Int) -> Point -> Point -> Point
+onPt f (Point a b) (Point c d) = Point (f a c) (f b d)
+
+addPt :: Point -> Point -> Point
+addPt = onPt (+)
+
+subPt :: Point -> Point -> Point
+subPt = onPt (-)
+
 pointsIn :: Rect -> [Point]
 pointsIn (Rect a b) = [Point x y | x <- [x a..x b], y <- [y a..y b]]
 
 pointsInAll :: [Rect] -> [Point]
 pointsInAll = nub . concatMap pointsIn
 
+-- rectangles overlap iff (x a1) <= (x b2), (x a2) <= (x b1), ...
 rectsOverlap :: Rect -> Rect -> Bool
-rectsOverlap (Rect a1 b1) (Rect a2 b2) = and $ fs <*> args where
-    fs = uncurry <$> [(<=) `on` x, (<=) `on` y]
+rectsOverlap (Rect a1 b1) (Rect a2 b2) = and $ fs args where
+    fs = liftA2 uncurry [(<=) `on` x, (<=) `on` y]
     args = [(a1,b2), (a2,b1)]
 
 -- points that lie in both rects
@@ -85,7 +97,7 @@ readInt = read
 
 -- parse an integer of length n
 nInt :: Monad m => Int -> ParsecT String u m Int
-nInt = fmap readInt . flip count digit
+nInt n = readInt <$> count n digit
 
 -- combines duplicate keys in lookup table
 combineOn :: (Eq a, Ord a) => (b -> c -> c) -> c -> [(a,b)] -> [(a,c)]
