@@ -51,18 +51,6 @@ overlapRect r1@(Rect a1 b1) r2@(Rect a2 b2)
     | rectsOverlap r1 r2 = pointsIn r1 `intersect` pointsIn r2
     | otherwise = []
 
-reverse2D :: [[a]] -> [[a]]
-reverse2D = map reverse . reverse
-
-splitOn :: Eq a => [a] -> [a] -> [[a]]
-splitOn delim s = reverse2D $ splitOn' [] delim s where
-    splitOn' cur@(top:ts) (d:ds) (x:xs)
-        | d == x    = splitOn' cur ds xs
-        | otherwise = splitOn' ((x:top) : ts) delim xs
-
-    splitOn' cur [] xs = splitOn' ([] : cur) delim xs
-    splitOn' cur _ []  = cur
-
 update :: Eq a => a -> (Maybe b -> b) -> [(a,b)] -> [(a,b)]
 update x f ls
     | x `elem` keys = changeVal <$> ls

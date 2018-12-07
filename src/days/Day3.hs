@@ -1,6 +1,7 @@
 module Day3 where
 
 import Data.List (init, nub)
+import Data.List.Split (splitOn)
 import Util
 
 data Claim = Claim {

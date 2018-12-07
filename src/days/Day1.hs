@@ -1,5 +1,6 @@
 module Day1 where
 
+import Data.List.Split (splitOn)
 import Util
 
 getChanges :: IO [Int -> Int]
