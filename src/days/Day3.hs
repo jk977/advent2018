@@ -1,19 +1,7 @@
 module Day3 where
 
-import Data.List (init, nub, intersect)
-import Data.Function (on)
-
+import Data.List (init, nub)
 import Util
-
-data Point = Point {
-    x :: Int,
-    y :: Int
-} deriving (Show, Ord, Eq)
-
-data Rect = Rect {
-    vertexA :: Point,
-    vertexB :: Point
-} deriving (Show, Ord, Eq)
 
 data Claim = Claim {
     cid :: Int,
@@ -26,12 +14,6 @@ makeRect start@(Point x y) width height = Rect start end where
     yEnd = y + height - 1
     end = Point xEnd yEnd
 
-pointsIn :: Rect -> [Point]
-pointsIn (Rect a b) = [Point x y | x <- [x a..x b], y <- [y a..y b]]
-
-pointsInAll :: [Rect] -> [Point]
-pointsInAll = nub . concatMap pointsIn
-
 parseClaim :: String -> Claim
 parseClaim s = Claim cid section where
     readOn d = map read . splitOn d
@@ -43,19 +25,8 @@ parseClaim s = Claim cid section where
     cid = read . tail $ idS
     section = makeRect (Point x y) width height
 
-rectsOverlap :: Rect -> Rect -> Bool
-rectsOverlap (Rect a1 b1) (Rect a2 b2) = and $ fs <*> args where
-    fs = uncurry <$> [(<=) `on` x, (<=) `on` y]
-    args = [(a1,b2), (a2,b1)]
-
 claimsOverlap :: Claim -> Claim -> Bool
 claimsOverlap (Claim _ r1) (Claim _ r2) = rectsOverlap r1 r2
-
--- points that lie in both rects
-overlapRect :: Rect -> Rect -> [Point]
-overlapRect r1@(Rect a1 b1) r2@(Rect a2 b2)
-    | rectsOverlap r1 r2 = pointsIn r1 `intersect` pointsIn r2
-    | otherwise = []
 
 -- points that lie in both claims
 overlapClaim :: Claim -> Claim -> [Point]

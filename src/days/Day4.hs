@@ -121,9 +121,7 @@ part1 = do
         ordered = sortOn (`countIn` mins) mins
         targetMin = last ordered
 
-    putStrLn $ "Sleepiest guard is " ++ (show slacker)
-    putStrLn $ "Most commonly asleep at " ++ (show targetMin)
-    putStrLn $ "Answer is " ++ (show $ slacker * targetMin)
+    print . show $ slacker * targetMin
 
 part2 :: IO ()
 part2 = do
@@ -131,11 +129,6 @@ part2 = do
 
     let freqs = second frequencies <$> getSleepMins logs        :: [(Guard, [(Int,Int)])]
         maxes = second (maximumBy (compare `on` snd)) <$> freqs :: [(Guard, (Int,Int))]
-        (Id slacker, (min, freq)) = maximumBy (compare `on` (snd . snd)) maxes
+        (Id slacker, (targetMin, _)) = maximumBy (compare `on` (snd . snd)) maxes
 
-    putStrLn $ "Highest sleep minute is "
-        ++ (show min)
-        ++ " (" ++ (show freq) ++ " times) by "
-        ++ (show slacker)
-
-    putStrLn $ "Answer is " ++ (show $ slacker * min)
+    print . show $ slacker * targetMin

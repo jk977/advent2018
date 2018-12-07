@@ -2,8 +2,37 @@ module Util where
 
 import Control.Arrow
 import Data.List
+import Data.Function (on)
+
 import GHC.Exts
 import Text.Parsec
+
+data Point = Point {
+    x :: Int,
+    y :: Int
+} deriving (Show, Ord, Eq)
+
+data Rect = Rect {
+    vertexA :: Point,
+    vertexB :: Point
+} deriving (Show, Ord, Eq)
+
+pointsIn :: Rect -> [Point]
+pointsIn (Rect a b) = [Point x y | x <- [x a..x b], y <- [y a..y b]]
+
+pointsInAll :: [Rect] -> [Point]
+pointsInAll = nub . concatMap pointsIn
+
+rectsOverlap :: Rect -> Rect -> Bool
+rectsOverlap (Rect a1 b1) (Rect a2 b2) = and $ fs <*> args where
+    fs = uncurry <$> [(<=) `on` x, (<=) `on` y]
+    args = [(a1,b2), (a2,b1)]
+
+-- points that lie in both rects
+overlapRect :: Rect -> Rect -> [Point]
+overlapRect r1@(Rect a1 b1) r2@(Rect a2 b2)
+    | rectsOverlap r1 r2 = pointsIn r1 `intersect` pointsIn r2
+    | otherwise = []
 
 reverse2D :: [[a]] -> [[a]]
 reverse2D = map reverse . reverse
