@@ -97,6 +97,3 @@ combineOn f x0 = map (second $ foldr f x0)
 pairs :: [a] -> [(a,a)]
 pairs []       = []
 pairs (x:y:ys) = (x,y) : pairs ys
-
-inRange :: Ord a => a -> (a,a) -> Bool
-inRange x (xMin,xMax) = x >= xMin && x <= xMax
