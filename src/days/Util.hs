@@ -33,6 +33,12 @@ addPt = onPt (+)
 subPt :: Point -> Point -> Point
 subPt = onPt (-)
 
+enclose :: [Point] -> Rect
+enclose ps = Rect (Point xMin yMin) (Point xMax yMax) where
+    extremaOn f = [minimum, maximum] <*> [f <$> ps]
+    [xMin, xMax] = extremaOn x
+    [yMin, yMax] = extremaOn y
+
 pointsIn :: Rect -> [Point]
 pointsIn (Rect a b) = [Point x y | x <- [x a..x b], y <- [y a..y b]]
 

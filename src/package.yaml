@@ -26,6 +26,7 @@ executables:
     main:                Main.hs
     ghc-options:
     - -threaded
+    - -O2
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:

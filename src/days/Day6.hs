@@ -1,19 +1,11 @@
 module Day6 where
 
-import Data.Function (on)
-import Util
+import Data.List (sortOn)
+import Util (Point(..), subPt)
 
-enclose :: [Point] -> Rect
-enclose ps = Rect (Point xMin yMin) (Point xMax yMax) where
-    extremaOn f = [minimum, maximum] <*> [f <$> ps]
-    [xMin, xMax] = extremaOn x
-    [yMin, yMax] = extremaOn y
-
-borderPoints :: [Point] -> [Point]
-borderPoints ps = nub $ concat [xExtrema, yExtrema] where
-    bordersOn f = [minimumBy, maximumBy] <*> pure (compare `on` f) <*> [ps]
-    xExtrema = bordersOn x
-    yExtrema = bordersOn y
+manhattanDistance :: Point -> Point -> Int
+manhattanDistance p1 p2 = abs x + abs y where
+    Point x y = subPt p1 p2
 
 readPoint :: String -> Point
 readPoint s = Point x y where
