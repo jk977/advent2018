@@ -39,6 +39,10 @@ enclose ps = Rect (Point xMin yMin) (Point xMax yMax) where
     [xMin, xMax] = extremaOn x
     [yMin, yMax] = extremaOn y
 
+dimensions :: Rect -> (Int,Int)
+dimensions (Rect p1 p2) = (abs diffX, abs diffY) where
+    Point diffX diffY = subPt p1 p2
+
 pointsIn :: Rect -> [Point]
 pointsIn (Rect a b) = [Point x y | x <- [x a..x b], y <- [y a..y b]]
 
